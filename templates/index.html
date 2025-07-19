@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Study Planner</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h1><i class="fas fa-graduation-cap"></i> Smart Study Planner</h1>
+          <div class="header-actions">
+            <div class="user-profile">
+              <i class="fas fa-user-circle"></i>
+              <span id="user-name">{{ username }}</span>
+              <button id="logout-btn" class="btn btn-outline">
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </div>
+            <button id="notifications-toggle" class="notification-btn" title="Toggle Notifications">
+              <i class="fas fa-bell"></i>
+              <span class="notification-status"></span>
+            </button>
+            <button id="theme-toggle" class="btn btn-outline">
+              <i class="fas fa-moon"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Navigation Tabs -->
+        <div class="tab-container">
+          <button class="tab-button active" data-tab="create-plan">
+            <i class="fas fa-plus-circle"></i> Create Plan
+          </button>
+          <button class="tab-button" data-tab="dashboard">
+            <i class="fas fa-chart-line"></i> Dashboard
+          </button>
+          <button class="tab-button" data-tab="schedule">
+            <i class="fas fa-calendar-alt"></i> Schedule
+          </button>
+          <button class="tab-button" data-tab="progress">
+            <i class="fas fa-tasks"></i> Progress
+          </button>
+        </div>
+
+        <!-- Create Plan Tab -->
+        <div id="create-plan" class="tab-content active">
+          <div class="card">
+            <h2><i class="fas fa-magic"></i> Create Your Study Plan</h2>
+            <form id="study-plan-form">
+              <!-- Plan Duration -->
+              <div class="form-group">
+                <label for="plan-duration">Plan Duration</label>
+                <select id="plan-duration" required>
+                  <option value="7">7 Days (1 Week)</option>
+                  <option value="15" selected>15 Days (2 Weeks)</option>
+                  <option value="30">30 Days (1 Month)</option>
+                  <option value="60">60 Days (2 Months)</option>
+                </select>
+              </div>
+
+              <!-- Study Time Configuration -->
+              <div class="form-group">
+                <label for="time-available">Daily Study Hours</label>
+                <input
+                  type="number"
+                  id="time-available"
+                  min="1"
+                  max="16"
+                  value="4"
+                  required
+                />
+              </div>
+
+              <!-- Preferred Time Slots -->
+              <div class="form-group">
+                <label>Preferred Study Times</label>
+                <div class="time-slots">
+                  <div class="time-slot">
+                    <input type="time" id="slot1-start" value="08:00" />
+                    <span>to</span>
+                    <input type="time" id="slot1-end" value="10:00" />
+                  </div>
+                  <div class="time-slot">
+                    <input type="time" id="slot2-start" value="14:00" />
+                    <span>to</span>
+                    <input type="time" id="slot2-end" value="16:00" />
+                  </div>
+                  <div class="time-slot">
+                    <input type="time" id="slot3-start" value="19:00" />
+                    <span>to</span>
+                    <input type="time" id="slot3-end" value="21:00" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Subjects Section -->
+              <div class="form-group">
+                <label>Subjects & Topics</label>
+                <div id="subjects-container">
+                  <!-- Subjects will be added here dynamically -->
+                </div>
+                <button type="button" id="add-subject" class="btn btn-outline">
+                  <i class="fas fa-plus"></i> Add Subject
+                </button>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-rocket"></i> Generate Study Plan
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+          <div class="dashboard-grid">
+            <!-- Plan Management Card -->
+            <div class="card">
+              <h3><i class="fas fa-folder-open"></i> Plan Management</h3>
+              <div id="plan-management">
+                <div class="current-plan-info">
+                  <div class="plan-detail">
+                    <span class="plan-label">Current Plan:</span>
+                    <span id="current-plan-name">No plan selected</span>
+                  </div>
+                  <div class="plan-detail">
+                    <span class="plan-label">Duration:</span>
+                    <span id="current-plan-duration">-</span>
+                  </div>
+                  <div class="plan-detail">
+                    <span class="plan-label">Created:</span>
+                    <span id="current-plan-date">-</span>
+                  </div>
+                </div>
+                <div class="plan-actions">
+                  <button id="view-all-plans" class="btn btn-outline btn-sm">
+                    <i class="fas fa-list"></i> View All Plans
+                  </button>
+                  <button id="delete-current-plan" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash"></i> Delete Current
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3><i class="fas fa-chart-pie"></i> Overall Progress</h3>
+              <div id="overall-progress" class="progress-display">
+                <div class="progress-circle">
+                  <div class="progress-text">
+                    <span id="progress-percentage">0%</span>
+                    <small>Complete</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3><i class="fas fa-list-check"></i> Quick Stats</h3>
+              <div id="quick-stats">
+                <div class="stat-item">
+                  <span class="stat-value" id="completed-topics">0</span>
+                  <span class="stat-label">Topics Completed</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="total-subjects">0</span>
+                  <span class="stat-label">Subjects</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="total-topics">0</span>
+                  <span class="stat-label">Total Topics</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card full-width">
+              <div class="chart-header">
+                <h3><i class="fas fa-chart-bar"></i> Progress Chart</h3>
+                <div class="chart-controls">
+                  <div class="chart-view-toggle">
+                    <button id="static-chart-btn" class="chart-toggle-btn active" data-view="static">
+                      <i class="fas fa-chart-pie"></i> Summary
+                    </button>
+                    <button id="timeline-chart-btn" class="chart-toggle-btn" data-view="timeline">
+                      <i class="fas fa-chart-line"></i> Timeline
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="progress-chart-container">
+                <img
+                  id="progress-chart"
+                  src=""
+                  alt="Progress chart will appear here"
+                  style="display: none; width: 100%; height: auto"
+                />
+                <div id="chart-placeholder" class="chart-placeholder">
+                  <i class="fas fa-chart-bar"></i>
+                  <p>Create a study plan to see your progress chart</p>
+                </div>
+                <div id="chart-loading" class="chart-loading" style="display: none;">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <p>Loading chart...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Tab -->
+        <div id="schedule" class="tab-content">
+          <div class="card">
+            <div class="schedule-header">
+              <h2><i class="fas fa-calendar-week"></i> Study Schedule</h2>
+              <div class="schedule-controls">
+                <select id="schedule-view" class="schedule-view-select">
+                  <option value="all">All Days</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="upcoming">Next 7 Days</option>
+                </select>
+                <button id="refresh-schedule" class="btn btn-outline btn-sm">
+                  <i class="fas fa-refresh"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div id="schedule-stats" class="schedule-stats">
+              <div class="stat-item">
+                <span class="stat-value" id="schedule-total-days">0</span>
+                <span class="stat-label">Total Days</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="schedule-total-sessions">0</span>
+                <span class="stat-label">Study Sessions</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="schedule-duration">0</span>
+                <span class="stat-label">Plan Duration</span>
+              </div>
+            </div>
+            <div id="schedule-container">
+              <div class="schedule-placeholder">
+                <i class="fas fa-calendar-plus"></i>
+                <p>Create a study plan to see your schedule</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Tab -->
+        <div id="progress" class="tab-content">
+          <div class="card">
+            <h2><i class="fas fa-tasks"></i> Topic Progress</h2>
+            <div id="progress-container">
+              <div class="progress-placeholder">
+                <i class="fas fa-clipboard-list"></i>
+                <p>Create a study plan to track your progress</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Generating your study plan...</p>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Plans Management Modal -->
+    <div id="plans-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fas fa-folder-open"></i> Manage Study Plans</h2>
+          <button class="modal-close" onclick="closePlansModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="plans-list">
+            <div class="loading-placeholder">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Loading plans...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+timestamp,plan_id,subject,topic,completed
+2025-07-19 10:00:00,example_plan_id,Mathematics,Algebra,Yes
+2025-07-19 11:00:00,example_plan_id,Mathematics,Calculus,No
