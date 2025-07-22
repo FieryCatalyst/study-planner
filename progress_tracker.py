@@ -134,23 +134,41 @@ class ProgressTracker:
             # Create date range for the plan duration
             date_range = pd.date_range(start=plan_start.date(), periods=plan_duration, freq='D')
             
-            # Calculate cumulative progress for each day
+            # Pre-calculate constants to avoid repeated computation
+            total_topics = sum(len(subject['topics']) for subject in study_plan['subjects'])
+            subject_totals = {subject['name']: len(subject['topics']) for subject in study_plan['subjects']}
+            subject_names = list(subject_totals.keys())
+            
+            # Filter completed data once
+            completed_data = plan_data[plan_data['completed'] == 'Yes'].copy()
+            completed_data['date'] = completed_data['timestamp'].dt.date
+            
+            # Group completed data by date for efficient lookup
+            completed_by_date = {}
+            if not completed_data.empty:
+                for date, group in completed_data.groupby('date'):
+                    completed_by_date[date] = group.drop_duplicates(['subject', 'topic'])
+            
+            # Calculate cumulative progress for each day in O(n)
             daily_progress = {}
             subjects_progress = {}
+            cumulative_completed = set()  # Track unique (subject, topic) pairs
+            cumulative_by_subject = {name: set() for name in subject_names}  # Track by subject
             
             for date in date_range:
+                date_obj = date.date()
                 date_str = date.strftime('%Y-%m-%d')
                 
-                # Get completed topics up to this date
-                completed_up_to_date = plan_data[
-                    (plan_data['timestamp'].dt.date <= date.date()) & 
-                    (plan_data['completed'] == 'Yes')
-                ]
+                # Add new completions for this date
+                if date_obj in completed_by_date:
+                    daily_completions = completed_by_date[date_obj]
+                    for _, row in daily_completions.iterrows():
+                        topic_key = (row['subject'], row['topic'])
+                        cumulative_completed.add(topic_key)
+                        cumulative_by_subject[row['subject']].add(row['topic'])
                 
                 # Calculate overall progress
-                total_topics = sum(len(subject['topics']) for subject in study_plan['subjects'])
-                completed_topics = len(completed_up_to_date.drop_duplicates(['subject', 'topic']))
-                
+                completed_topics = len(cumulative_completed)
                 daily_progress[date_str] = {
                     'completed': completed_topics,
                     'total': total_topics,
@@ -159,11 +177,9 @@ class ProgressTracker:
                 
                 # Calculate progress by subject
                 subjects_progress[date_str] = {}
-                for subject in study_plan['subjects']:
-                    subject_name = subject['name']
-                    subject_completed = completed_up_to_date[completed_up_to_date['subject'] == subject_name]
-                    subject_total = len(subject['topics'])
-                    subject_completed_count = len(subject_completed.drop_duplicates(['topic']))
+                for subject_name in subject_names:
+                    subject_completed_count = len(cumulative_by_subject[subject_name])
+                    subject_total = subject_totals[subject_name]
                     
                     subjects_progress[date_str][subject_name] = {
                         'completed': subject_completed_count,
@@ -241,22 +257,27 @@ class ProgressTracker:
             subject_names = [s['name'] for s in subjects]
             colors = plt.cm.Set3(range(len(subject_names)))
             
-            # Prepare subject data
+            # Prepare subject data efficiently - O(n) instead of O(n²)
             subject_data = {name: [] for name in subject_names}
-            for date_str in historical_data['daily_progress'].keys():
+            dates_list = list(historical_data['daily_progress'].keys())
+            
+            # Single pass through dates and subjects
+            for date_str in dates_list:
+                subjects_for_date = historical_data['subjects_progress'][date_str]
                 for subject_name in subject_names:
-                    if subject_name in historical_data['subjects_progress'][date_str]:
-                        subject_data[subject_name].append(
-                            historical_data['subjects_progress'][date_str][subject_name]['percentage']
-                        )
+                    if subject_name in subjects_for_date:
+                        subject_data[subject_name].append(subjects_for_date[subject_name]['percentage'])
                     else:
                         subject_data[subject_name].append(0)
             
+            # Optimize the bottom calculation
             bottom = [0] * len(dates)
             for i, (subject_name, data) in enumerate(subject_data.items()):
-                ax3.fill_between(dates, bottom, [bottom[j] + data[j]/len(subject_names) for j in range(len(data))], 
+                normalized_data = [val/len(subject_names) for val in data]
+                new_bottom = [bottom[j] + normalized_data[j] for j in range(len(data))]
+                ax3.fill_between(dates, bottom, new_bottom, 
                                label=subject_name, alpha=0.7, color=colors[i])
-                bottom = [bottom[j] + data[j]/len(subject_names) for j in range(len(data))]
+                bottom = new_bottom
             
             ax3.set_title('Subject-wise Progress Distribution', fontsize=14, fontweight='bold')
             ax3.set_ylabel('Progress Distribution (%)')
