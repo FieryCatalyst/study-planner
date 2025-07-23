@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import time
 import threading
-
+    
 try:
     from plyer import notification
     NOTIFICATIONS_AVAILABLE = True
@@ -57,9 +57,8 @@ class NotificationSystem:
                 
                 # Check if we have schedule for today
                 if today in plan['daily_schedule']:
-                    today_schedule = plan['daily_schedule'][today]
                     
-                    for item in today_schedule:
+                    for item in plan['daily_schedule'][today]:
                         # Check if this item has a time slot coming up
                         time_slot = item['time_slot']
                         if '-' in time_slot:

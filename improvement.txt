@@ -1,0 +1,31 @@
+subject_data = {name: [] for name in subject_names}
+            for date_str in historical_data['daily_progress'].keys():
+                for subject_name in subject_names:
+                    if subject_name in historical_data['subjects_progress'][date_str]:
+                        subject_data[subject_name].append(
+                            historical_data['subjects_progress'][date_str][subject_name]['percentage']
+                        )
+                    else:
+                        subject_data[subject_name].append(0)
+
+this is not a good practce is guess using hte o(n*2) 
+we can list the key and then go through all of them that might take the memory for a second but after the thing get 
+date_set = list(historical_data['daily_progress'].keys())
+and then go through the loop 
+for date in data_set: 
+    using the conditon and all 
+
+
+
+
+
+reference :progress_tracker.py line:246
+
+
+ for topic_id in completed_topics:
+            for subject in study_plan['subjects']:
+                for topic in subject['topics']:
+                    if topic['id'] == topic_id:
+                        topic['completed'] = True
+
+and in this code we can do the same things and go througth the list and then make it better and less time complex

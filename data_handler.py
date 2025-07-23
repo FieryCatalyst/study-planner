@@ -64,13 +64,17 @@ class DataHandler:
         if plan_id not in all_plans:
             return False
             
-        # Find the topic in the plan and update completion status
-        for subj in all_plans[plan_id]['subjects']:
-            if subj['name'] == subject:
-                for t in subj['topics']:
-                    if t['name'] == topic:
-                        t['completed'] = completed
-                        t['completed_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if completed else None
+        # Find the topic in the plan and update completion status this-> O(n*2)->o(s+t) now this is linear 
+        for subj in all_plans[plan_id]['subjects']:  
+            if subj['name'] != subject:
+                continue
+            for topic_obj in subj['topics']:         
+                if topic_obj['name'] == topic:
+                    topic_obj['completed'] = completed
+                    topic_obj['completed_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if completed else None
+                break
+            break
+
         
         # Save the updated plans
         with open(self.json_path, 'w') as f:

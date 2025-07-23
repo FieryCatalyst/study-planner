@@ -27,13 +27,14 @@ users_file = os.path.join('data', 'users.json')
 
 def load_users():
     """Load users from JSON file"""
-    if os.path.exists(users_file):
+    if not os.path.exists(users_file):
+        return {}
+    else:
         try:
             with open(users_file, 'r') as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            return {}
-    return {}
+                return {}
 
 def save_users(users):
     """Save users to JSON file"""

@@ -241,7 +241,7 @@ class ProgressTracker:
             subject_names = [s['name'] for s in subjects]
             colors = plt.cm.Set3(range(len(subject_names)))
             
-            # Prepare subject data
+            # Prepare subject data 
             subject_data = {name: [] for name in subject_names}
             for date_str in historical_data['daily_progress'].keys():
                 for subject_name in subject_names:

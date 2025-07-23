@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeNotificationButton();
     loadLatestPlan();
     
-    // Add event listeners with null checks
+    // Add event listeners with null checks //suggestion -> using a object improves the scalability and the maintainance also and kinda uses more ram about of 10kb more 
     if (studyPlanForm) {
         studyPlanForm.addEventListener('submit', handleFormSubmit);
     }
